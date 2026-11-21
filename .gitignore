@@ -9,3 +9,5 @@ coverage/
 *.tmp
 .tmp/
 .npm-cache/
+frontend/playwright-report/
+frontend/test-results/

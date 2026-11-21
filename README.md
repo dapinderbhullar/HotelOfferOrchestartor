@@ -1,16 +1,18 @@
 # Hotel Offer Orchestrator
 
-Hotel Offer Orchestrator is a TypeScript backend that uses Temporal to aggregate hotel offers and Redis to serve price-filtered results. It fetches two supplier feeds concurrently, selects the cheapest offer for each normalized hotel name, and preserves the winning supplier's commission. The local Compose stack makes the workflow history, cache behavior, and partial-failure policy visible during a technical evaluation.
+Hotel Offer Orchestrator is a hotel comparison dashboard and TypeScript API. Temporal fetches two supplier feeds concurrently, the worker keeps the cheapest offer per normalized hotel name, and Redis serves price-filtered results. The dashboard shows prices, supplier commissions, current-snapshot analytics, and service health.
 
 Delhi has seven mock listings per supplier and ten unique hotels. Mumbai has an intentionally empty catalog for testing. Start with [Docker Compose setup](#run-with-docker-compose), then use the [five-minute demo](DEMO_GUIDE.md) and [interview preparation notes](INTERVIEW_PREPARATION.md).
 
 ## Stack and architecture
 
-Node.js 22 LTS (22.12+), strict TypeScript, Express 5, Temporal, Redis 7, Vitest, Docker Compose, and Postman.
+Node.js 22 LTS (22.12+), strict TypeScript, Express 5, Temporal, Redis 7, React, Vite, Tailwind CSS, React Router, TanStack Query, Recharts, Lucide, Vitest, Playwright, Docker Compose, and Postman.
 
 ```mermaid
 flowchart LR
-    Client --> API[Express API]
+    Client[Browser] --> UIX[React dashboard]
+    UIX --> Proxy[Same-origin proxy]
+    Proxy --> API
     subgraph Express[Express process]
         API[Offers, refresh, health]
         A[Supplier A route]
@@ -78,6 +80,7 @@ docker compose ps
 
 | Service | Address or role |
 | --- | --- |
+| React dashboard | http://127.0.0.1:5173 |
 | API and both mock supplier routes | http://localhost:3000 |
 | Worker | Internal process polling the hotel-offers task queue |
 | Temporal | localhost:7233 for local SDK clients |
@@ -87,6 +90,68 @@ docker compose ps
 Host ports bind to loopback. API and worker containers run as a non-root user with Linux capabilities dropped and privilege escalation disabled. The runtime image excludes build tooling and the base image's package managers. Run `docker compose down` to stop the stack and preserve the Redis volume. The bundled Temporal server runs in development mode and its workflow history is ephemeral across container recreation. Before internet-facing deployment, use a durable Temporal service, secure Temporal and Redis access, and put the API behind TLS with authentication and request limits for refresh.
 
 If port 3000 is occupied, set `PORT=13000` in .env and use port 13000 for API requests and the Postman collection.
+
+### Frontend routes
+
+| Page | Route | Data and actions |
+| --- | --- | --- |
+| Overview | `/` | Current city summary, search, cheapest offer highlight, and refresh |
+| Hotel Search | `/hotels` | Inclusive minimum and maximum prices, sortable and paginated offers, and offer details |
+| Price Analytics | `/analytics` | Returned-price distribution, supplier share, average price, and the five cheapest offers |
+| Workflow Monitor | `/workflows` | Workflow type and ID to look up in Temporal UI, plus namespace health |
+| System Health | `/health` | API, Redis, Temporal, and supplier health with manual refresh and 30-second polling |
+
+The frontend keeps submitted city and price filters in the URL. TanStack Query keys offer data by those parameters, and every price range is sent to Redis through the existing API. The frontend displays the backend's deduplicated offers and partial-supplier warning header. Refresh posts to the existing endpoint, then updates the unfiltered cache entry and reloads the currently active filtered results. Analytics describe the current results. The backend exposes no workflow execution API, so the dashboard links to Temporal UI for run history.
+
+### Frontend development
+
+With the backend running and Node.js 22.13+ or 24 LTS installed, open a PowerShell session in the project root:
+
+```powershell
+if (-not (Test-Path frontend/.env)) { Copy-Item frontend/.env.example frontend/.env }
+npm.cmd --prefix frontend ci
+npm.cmd --prefix frontend run dev
+```
+
+Copy the template only if `frontend/.env` does not exist. The template proxies to the API on port 13000. Set `API_PROXY_TARGET=http://127.0.0.1:3000` when using the default API port. Stop the Compose frontend if it already owns port 5173 before starting Vite locally.
+
+| Variable | Where it applies | Default |
+| --- | --- | --- |
+| `FRONTEND_PORT` | Compose host port | `5173` |
+| `VITE_API_BASE_URL` | Compose build argument or frontend build environment | `/gateway` |
+| `API_PROXY_TARGET` | Local Vite development proxy | `http://127.0.0.1:3000` |
+| `VITE_TEMPORAL_UI_URL` | Compose build argument or frontend build environment | `http://127.0.0.1:8080` |
+| `VITE_DISPLAY_CURRENCY` | Compose build argument or frontend build environment | `INR` |
+
+The mock API returns numeric amounts with no currency code. The UI presents Delhi prices in INR by default. The display setting changes formatting and does not convert amounts. Vite proxies `/gateway` during development, and Nginx proxies the offer and health endpoints to `api:3000` in Compose. Both preserve the browser Host header for the existing same-origin refresh check. Use a same-origin proxy with standalone production builds. Frontend build variables are public configuration and must not contain secrets.
+
+### Frontend checks
+
+```powershell
+npm.cmd --prefix frontend run typecheck
+npm.cmd --prefix frontend run build
+npm.cmd --prefix frontend run lint
+npm.cmd --prefix frontend test
+npm.cmd --prefix frontend exec -- playwright install chromium
+npm.cmd --prefix frontend run test:browser
+```
+
+Run browser tests against a healthy Compose stack. Set `PLAYWRIGHT_CHANNEL=msedge` to use an installed Edge browser. Set `TEST_FRONTEND_URL` when using a different frontend port. The normal suite covers API-backed search, price bounds, clearing filters, refresh, health, navigation, and four viewports. The separate outage test checks one supplier at a time. Set `DOCKER_SUPPLIER_A_URL=http://api:9` or `DOCKER_SUPPLIER_B_URL=http://api:9`, then run `docker compose up -d --no-build --no-deps api worker`. Set `TEST_SUPPLIER_OUTAGE` to the matching letter (`A` or `B`) and run `npm.cmd --prefix frontend run test:browser -- outage.spec.ts`. Clear both variables afterward and follow the restore procedure in the [demo guide](DEMO_GUIDE.md).
+
+### Frontend troubleshooting
+
+- If the dashboard reports the backend is unavailable, check `docker compose ps` and open the API's direct `/health` endpoint. Use the port configured through `PORT`.
+- If local Vite calls target the wrong backend, check `API_PROXY_TARGET` in `frontend/.env` and restart Vite.
+- If refresh reports an origin mismatch, use the dashboard's `/gateway` proxy. The backend checks the browser's Origin header.
+- If another app owns port 5173, set `FRONTEND_PORT` in the root environment for Compose and update `TEST_FRONTEND_URL` when testing.
+
+### Screenshots
+
+![Overview showing the ten live Delhi offers](docs/screenshots/overview.png)
+
+[Hotel Search](docs/screenshots/hotel-search.png) · [Price Analytics](docs/screenshots/price-analytics.png) · [Workflow Monitor](docs/screenshots/workflow-monitor.png) · [System Health](docs/screenshots/system-health.png) · [Degraded Health](docs/screenshots/degraded-health.png) · [Mobile Overview](docs/screenshots/mobile-overview.png)
+
+The screenshots were captured from the running Compose dashboard. The banner photograph is decorative. [Palm Trees at Night by Pixabay on Pexels](https://www.pexels.com/photo/palm-trees-at-night-258154/)
 
 ## Run Node processes locally
 
@@ -187,9 +252,11 @@ src/temporal/              Workflow, activities and worker entry point
 tests/                     Vitest suite
 integration/               Live Compose verification
 postman/                   Importable API collection and examples
+frontend/                  React app, API client, proxy, and browser tests
+docs/screenshots/          Captures from the running dashboard
 Dockerfile                 App runtime and unit-test build stages
 Dockerfile.dependencies    Upstream dependency images with package updates
-docker-compose.yml         Five-service local deployment
+docker-compose.yml         Six-service local deployment
 DEMO_GUIDE.md              Timed walkthrough and optional outage exercise
 INTERVIEW_PREPARATION.md   Design rationale, source excerpts, and trade-offs
 ```
