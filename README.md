@@ -149,8 +149,7 @@ Run browser tests against a healthy Compose stack. Set `PLAYWRIGHT_CHANNEL=msedg
 
 ![Overview showing the ten live Delhi offers](docs/screenshots/overview.png)
 
-[Hotel Search](docs/screenshots/hotel-search.png) · [Price Analytics](docs/screenshots/price-analytics.png) · [Workflow Monitor](docs/screenshots/workflow-monitor.png) · [System Health](docs/screenshots/system-health.png) · [Degraded Health](docs/screenshots/degraded-health.png) · [Mobile Overview](docs/screenshots/mobile-overview.png)
-
+[Hotel Search](docs/screenshots/hotel-search.png) · [Price Analytics](docs/screenshots/price-analytics.png) · [Workflow Monitor](docs/screenshots/workflow-monitor.png) · [System Health](docs/screenshots/system-health.png) · [Degraded Health](docs/screenshots/degraded-health.png) 
 The screenshots were captured from the running Compose dashboard. The banner photograph is decorative. [Palm Trees at Night by Pixabay on Pexels](https://www.pexels.com/photo/palm-trees-at-night-258154/)
 
 ## Run Node processes locally
