@@ -257,8 +257,6 @@ docs/screenshots/          Captures from the running dashboard
 Dockerfile                 App runtime and unit-test build stages
 Dockerfile.dependencies    Upstream dependency images with package updates
 docker-compose.yml         Six-service local deployment
-DEMO_GUIDE.md              Timed walkthrough and optional outage exercise
-INTERVIEW_PREPARATION.md   Design rationale, source excerpts, and trade-offs
 ```
 
 Future work includes supplier onboarding, currency normalization, metrics and distributed tracing, authenticated refresh, and workflow versioning for coordinated deployments.
