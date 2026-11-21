@@ -1,5 +1,5 @@
 import { NativeConnection, Runtime, Worker } from '@temporalio/worker';
-import { config, temporalConnectionOptions } from '../config';
+import { config } from '../config';
 import { errorKind, log } from '../log';
 import { connectWithRetry } from '../runtime';
 import { createRedis, hotelCache } from '../services/cache';
@@ -8,7 +8,9 @@ import { hotelActivities } from './activities';
 async function main() {
   Runtime.install({ shutdownSignals: ['SIGINT', 'SIGTERM'] });
   const redis = createRedis();
-  const connection = await connectWithRetry('temporal', () => NativeConnection.connect(temporalConnectionOptions()));
+  const connection = await connectWithRetry('temporal', () => NativeConnection.connect({
+    address: config.temporalAddress,
+  }));
   try {
     void redis.connect().catch((error: unknown) => log('error', 'redis.startup', { error: errorKind(error) }));
     const worker = await Worker.create({

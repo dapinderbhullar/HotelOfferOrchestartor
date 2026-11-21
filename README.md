@@ -4,8 +4,6 @@ Hotel Offer Orchestrator is a hotel comparison dashboard and TypeScript API. Tem
 
 Delhi has seven mock listings per supplier and ten unique hotels. Mumbai has an intentionally empty catalog for testing. Start with [Docker Compose setup](#run-with-docker-compose), then use the [five-minute demo](DEMO_GUIDE.md) and [interview preparation notes](INTERVIEW_PREPARATION.md).
 
-For a hosted setup, use the [Render and Vercel deployment guide](docs/RENDER_VERCEL_DEPLOYMENT.md). It includes a Render Blueprint, Temporal Cloud and private networking settings, Vercel configuration, costs, and smoke tests.
-
 ## Stack and architecture
 
 Node.js 22 LTS (22.12+), strict TypeScript, Express 5, Temporal, Redis 7, React, Vite, Tailwind CSS, React Router, TanStack Query, Recharts, Lucide, Vitest, Playwright, Docker Compose, and Postman.

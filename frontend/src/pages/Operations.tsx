@@ -60,8 +60,8 @@ export function Workflows({ city, health }: { city: string; health: HealthQuery 
     <PageIntro title="Workflow monitor" description="Inspect hotel aggregation runs in Temporal." />
     <section className="card workflow-card">
       <span className="section-icon"><GitBranch size={24} /></span>
-      <div><h2>Temporal workflow history</h2><p>Use your Temporal console to inspect run status, timing, results, and activity history.</p>
-        {temporalUrl && <a className="button primary" href={temporalUrl} target="_blank" rel="noreferrer">Open Temporal UI <ExternalLink size={16} /></a>}</div>
+      <div><h2>Temporal workflow history</h2><p>Open Temporal UI to view live execution status, start and completion times, results, and activity history. The offers API does not expose execution records.</p>
+        <a className="button primary" href={temporalUrl} target="_blank" rel="noreferrer">Open Temporal UI <ExternalLink size={16} /></a></div>
       <Badge tone={status === 'healthy' ? 'green' : status === 'unhealthy' ? 'red' : 'muted'} dot>{status === 'healthy' ? 'Namespace healthy' : status === 'unhealthy' ? 'Namespace unhealthy' : 'Namespace status unknown'}</Badge>
     </section>
     <section className="card workflow-info"><h2>Find the current city’s runs</h2>
