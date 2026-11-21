@@ -1,0 +1,6 @@
+ARG BASE_IMAGE=redis:7.4-alpine
+FROM ${BASE_IMAGE}
+USER root
+RUN apk upgrade --no-cache
+ARG RUNTIME_USER=root
+USER ${RUNTIME_USER}

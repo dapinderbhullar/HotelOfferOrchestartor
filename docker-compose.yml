@@ -1,0 +1,110 @@
+name: hotel-offer-orchestrator
+
+x-app: &app
+  image: hotel-offer-orchestrator:local
+  init: true
+  restart: on-failure
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  environment:
+    PORT: 3000
+    HOST: 0.0.0.0
+    REDIS_URL: ${DOCKER_REDIS_URL:-redis://redis:6379}
+    TEMPORAL_ADDRESS: ${DOCKER_TEMPORAL_ADDRESS:-temporal:7233}
+    TEMPORAL_NAMESPACE: ${TEMPORAL_NAMESPACE:-default}
+    TEMPORAL_TASK_QUEUE: ${TEMPORAL_TASK_QUEUE:-hotel-offers}
+    SUPPLIER_A_URL: ${DOCKER_SUPPLIER_A_URL:-http://api:3000}
+    SUPPLIER_B_URL: ${DOCKER_SUPPLIER_B_URL:-http://api:3000}
+    CACHE_TTL_SECONDS: ${CACHE_TTL_SECONDS:-300}
+    PARTIAL_CACHE_TTL_SECONDS: ${PARTIAL_CACHE_TTL_SECONDS:-30}
+
+services:
+  api:
+    <<: *app
+    build: .
+    pull_policy: build
+    ports:
+      - "127.0.0.1:${PORT:-3000}:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+        restart: true
+      temporal:
+        condition: service_healthy
+        restart: true
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 4s
+      retries: 12
+
+  worker:
+    <<: *app
+    pull_policy: never
+    command: ["node", "dist/temporal/worker.js"]
+    stop_grace_period: 20s
+    depends_on:
+      api:
+        condition: service_started
+      redis:
+        condition: service_healthy
+        restart: true
+      temporal:
+        condition: service_healthy
+        restart: true
+
+  temporal:
+    image: hotel-offer-temporal:local
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: Dockerfile.dependencies
+      args:
+        BASE_IMAGE: ${TEMPORAL_IMAGE:-temporalio/temporal@sha256:b228dadf9cdb6c7c02a1394b89dd76f827aac9760e458fce42f0899a10141225}
+        RUNTIME_USER: temporal
+    command: ["server", "start-dev", "--ip", "0.0.0.0", "--headless", "--namespace", "${TEMPORAL_NAMESPACE:-default}"]
+    ports:
+      - "127.0.0.1:7233:7233"
+    healthcheck:
+      test: ["CMD", "temporal", "operator", "cluster", "health"]
+      interval: 3s
+      timeout: 3s
+      retries: 25
+
+  temporal-ui:
+    image: hotel-offer-temporal-ui:local
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: Dockerfile.dependencies
+      args:
+        BASE_IMAGE: ${TEMPORAL_UI_IMAGE:-temporalio/ui@sha256:ac3c13eddb4547d830991bb5eee93a5d97140134522b7297fdb2be1fe25ef925}
+        RUNTIME_USER: temporal
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      temporal:
+        condition: service_healthy
+        restart: true
+
+  redis:
+    image: hotel-offer-redis:local
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: Dockerfile.dependencies
+      args:
+        BASE_IMAGE: ${REDIS_IMAGE:-redis@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe}
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  redis-data:

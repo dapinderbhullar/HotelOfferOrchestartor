@@ -1,0 +1,979 @@
+{
+  "info": {
+    "name": "Hotel Offer Orchestrator",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run against the API on port 3000. Refresh Delhi starts a new execution unless a city workflow is already active."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "All Delhi hotels",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "description": "A cold cache starts aggregation. Sample shows two of ten offers.",
+        "url": {
+          "raw": "{{baseUrl}}/api/hotels?city=delhi",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "hotels"
+          ],
+          "query": [
+            {
+              "key": "city",
+              "value": "delhi"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "description": "A cold cache starts aggregation. Sample shows two of ten offers.",
+            "url": {
+              "raw": "{{baseUrl}}/api/hotels?city=delhi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hotels"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "delhi"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "[\n  {\n    \"name\": \"Holtin\",\n    \"price\": 5340,\n    \"supplier\": \"Supplier B\",\n    \"commissionPct\": 20\n  },\n  {\n    \"name\": \"Radison\",\n    \"price\": 5900,\n    \"supplier\": \"Supplier A\",\n    \"commissionPct\": 13\n  }\n]"
+        }
+      ]
+    },
+    {
+      "name": "Minimum price",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "description": "Includes offers equal to the lower bound.",
+        "url": {
+          "raw": "{{baseUrl}}/api/hotels?city=delhi&minPrice=8100",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "hotels"
+          ],
+          "query": [
+            {
+              "key": "city",
+              "value": "delhi"
+            },
+            {
+              "key": "minPrice",
+              "value": "8100"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "description": "Includes offers equal to the lower bound.",
+            "url": {
+              "raw": "{{baseUrl}}/api/hotels?city=delhi&minPrice=8100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hotels"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "delhi"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "8100"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "[\n  {\n    \"name\": \"Lodhi Garden Suites\",\n    \"price\": 8100,\n    \"supplier\": \"Supplier B\",\n    \"commissionPct\": 17\n  }\n]"
+        }
+      ]
+    },
+    {
+      "name": "Maximum price",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "description": "Includes offers equal to the upper bound.",
+        "url": {
+          "raw": "{{baseUrl}}/api/hotels?city=delhi&maxPrice=3800",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "hotels"
+          ],
+          "query": [
+            {
+              "key": "city",
+              "value": "delhi"
+            },
+            {
+              "key": "maxPrice",
+              "value": "3800"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "description": "Includes offers equal to the upper bound.",
+            "url": {
+              "raw": "{{baseUrl}}/api/hotels?city=delhi&maxPrice=3800",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hotels"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "delhi"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "3800"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "[\n  {\n    \"name\": \"Chandni Courtyard\",\n    \"price\": 3800,\n    \"supplier\": \"Supplier A\",\n    \"commissionPct\": 8\n  }\n]"
+        }
+      ]
+    },
+    {
+      "name": "Both price bounds",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "description": "Applies both inclusive bounds in Redis.",
+        "url": {
+          "raw": "{{baseUrl}}/api/hotels?city=delhi&minPrice=5340&maxPrice=5900",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "hotels"
+          ],
+          "query": [
+            {
+              "key": "city",
+              "value": "delhi"
+            },
+            {
+              "key": "minPrice",
+              "value": "5340"
+            },
+            {
+              "key": "maxPrice",
+              "value": "5900"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "description": "Applies both inclusive bounds in Redis.",
+            "url": {
+              "raw": "{{baseUrl}}/api/hotels?city=delhi&minPrice=5340&maxPrice=5900",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hotels"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "delhi"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "5340"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "5900"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "[\n  {\n    \"name\": \"Holtin\",\n    \"price\": 5340,\n    \"supplier\": \"Supplier B\",\n    \"commissionPct\": 20\n  },\n  {\n    \"name\": \"Radison\",\n    \"price\": 5900,\n    \"supplier\": \"Supplier A\",\n    \"commissionPct\": 13\n  }\n]"
+        }
+      ]
+    },
+    {
+      "name": "City with an empty catalog",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "description": "Mumbai is a supported city with empty feeds.",
+        "url": {
+          "raw": "{{baseUrl}}/api/hotels?city=mumbai",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "hotels"
+          ],
+          "query": [
+            {
+              "key": "city",
+              "value": "mumbai"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "description": "Mumbai is a supported city with empty feeds.",
+            "url": {
+              "raw": "{{baseUrl}}/api/hotels?city=mumbai",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hotels"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "mumbai"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "[]"
+        }
+      ]
+    },
+    {
+      "name": "No matching prices",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "description": "A range with no matches returns an empty array.",
+        "url": {
+          "raw": "{{baseUrl}}/api/hotels?city=delhi&minPrice=99999",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "hotels"
+          ],
+          "query": [
+            {
+              "key": "city",
+              "value": "delhi"
+            },
+            {
+              "key": "minPrice",
+              "value": "99999"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "description": "A range with no matches returns an empty array.",
+            "url": {
+              "raw": "{{baseUrl}}/api/hotels?city=delhi&minPrice=99999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hotels"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "delhi"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "99999"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "[]"
+        }
+      ]
+    },
+    {
+      "name": "Invalid price",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "description": "A non-numeric price fails validation.",
+        "url": {
+          "raw": "{{baseUrl}}/api/hotels?city=delhi&minPrice=abc",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "hotels"
+          ],
+          "query": [
+            {
+              "key": "city",
+              "value": "delhi"
+            },
+            {
+              "key": "minPrice",
+              "value": "abc"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "description": "A non-numeric price fails validation.",
+            "url": {
+              "raw": "{{baseUrl}}/api/hotels?city=delhi&minPrice=abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hotels"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "delhi"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "abc"
+                }
+              ]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"error\": {\n    \"code\": \"INVALID_PRICE\",\n    \"message\": \"minPrice must be a finite non-negative decimal.\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Invalid price range",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "description": "Reversed bounds fail validation.",
+        "url": {
+          "raw": "{{baseUrl}}/api/hotels?city=delhi&minPrice=7000&maxPrice=4000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "hotels"
+          ],
+          "query": [
+            {
+              "key": "city",
+              "value": "delhi"
+            },
+            {
+              "key": "minPrice",
+              "value": "7000"
+            },
+            {
+              "key": "maxPrice",
+              "value": "4000"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "description": "Reversed bounds fail validation.",
+            "url": {
+              "raw": "{{baseUrl}}/api/hotels?city=delhi&minPrice=7000&maxPrice=4000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hotels"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "delhi"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "7000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "4000"
+                }
+              ]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"error\": {\n    \"code\": \"INVALID_PRICE_RANGE\",\n    \"message\": \"minPrice must be less than or equal to maxPrice.\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Missing city",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "description": "A city is required.",
+        "url": {
+          "raw": "{{baseUrl}}/api/hotels",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "hotels"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "description": "A city is required.",
+            "url": {
+              "raw": "{{baseUrl}}/api/hotels",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hotels"
+              ]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"error\": {\n    \"code\": \"CITY_REQUIRED\",\n    \"message\": \"The city parameter is required.\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Supplier A hotels",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "description": "Sample shows one of seven Supplier A listings.",
+        "url": {
+          "raw": "{{baseUrl}}/supplierA/hotels?city=delhi",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "supplierA",
+            "hotels"
+          ],
+          "query": [
+            {
+              "key": "city",
+              "value": "delhi"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "description": "Sample shows one of seven Supplier A listings.",
+            "url": {
+              "raw": "{{baseUrl}}/supplierA/hotels?city=delhi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "supplierA",
+                "hotels"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "delhi"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "[\n  {\n    \"hotelId\": \"a1\",\n    \"name\": \"Holtin\",\n    \"price\": 6000,\n    \"city\": \"delhi\",\n    \"commissionPct\": 10\n  }\n]"
+        }
+      ]
+    },
+    {
+      "name": "Supplier B hotels",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "description": "Sample shows one of seven Supplier B listings.",
+        "url": {
+          "raw": "{{baseUrl}}/supplierB/hotels?city=delhi",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "supplierB",
+            "hotels"
+          ],
+          "query": [
+            {
+              "key": "city",
+              "value": "delhi"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "description": "Sample shows one of seven Supplier B listings.",
+            "url": {
+              "raw": "{{baseUrl}}/supplierB/hotels?city=delhi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "supplierB",
+                "hotels"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "delhi"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "[\n  {\n    \"hotelId\": \"b1\",\n    \"name\": \"Holtin\",\n    \"price\": 5340,\n    \"city\": \"delhi\",\n    \"commissionPct\": 20\n  }\n]"
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "description": "Checks Redis, Temporal, and both supplier feeds.",
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "description": "Checks Redis, Temporal, and both supplier feeds.",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"status\": \"healthy\",\n  \"services\": {\n    \"api\": \"healthy\",\n    \"redis\": \"healthy\",\n    \"temporal\": \"healthy\",\n    \"supplierA\": \"healthy\",\n    \"supplierB\": \"healthy\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Refresh Delhi",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "description": "Starts or joins a Delhi aggregation. Sample shows one of ten offers.",
+        "url": {
+          "raw": "{{baseUrl}}/api/hotels/refresh?city=delhi",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "hotels",
+            "refresh"
+          ],
+          "query": [
+            {
+              "key": "city",
+              "value": "delhi"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example response",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "description": "Starts or joins a Delhi aggregation. Sample shows one of ten offers.",
+            "url": {
+              "raw": "{{baseUrl}}/api/hotels/refresh?city=delhi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hotels",
+                "refresh"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "delhi"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "[\n  {\n    \"name\": \"Holtin\",\n    \"price\": 5340,\n    \"supplier\": \"Supplier B\",\n    \"commissionPct\": 20\n  }\n]"
+        }
+      ]
+    }
+  ]
+}
