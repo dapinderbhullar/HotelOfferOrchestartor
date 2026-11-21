@@ -27,7 +27,7 @@ function priceParameter(value: unknown, name: string) {
   return Number(value);
 }
 
-export function createApp(deps: Dependencies) {
+function createHttpApp() {
   const app = express();
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
@@ -36,11 +36,76 @@ export function createApp(deps: Dependencies) {
     next();
   });
 
+  return app;
+}
+
+function mountSupplierRoutes(app: ReturnType<typeof createHttpApp>) {
   for (const [path, supplier] of [['supplierA', 'Supplier A'], ['supplierB', 'Supplier B']] as const) {
     app.get('/' + path + '/hotels', (req, res) => {
       res.json(listings(supplier, cityParameter(req.query.city)));
     });
   }
+}
+
+function finishHttpApp(app: ReturnType<typeof createHttpApp>) {
+  app.use((_req, _res, next) => next(new ApiError(404, 'NOT_FOUND', 'Endpoint not found.')));
+  const errors: ErrorRequestHandler = (error: unknown, req, res, next) => {
+    if (res.headersSent) return next(error);
+    if (error instanceof ApiError) {
+      res.status(error.status).json({ error: { code: error.code, message: error.message } });
+      return;
+    }
+    log('error', 'http.unexpected', { method: req.method, error: errorKind(error) });
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred.' } });
+  };
+  app.use(errors);
+  return app;
+}
+
+export function createSupplierApp() {
+  const app = createHttpApp();
+  mountSupplierRoutes(app);
+  return finishHttpApp(app);
+}
+
+async function serviceStatus(check: () => Promise<unknown>) {
+  try {
+    await check();
+    return 'healthy';
+  } catch {
+    return 'unhealthy';
+  }
+}
+
+export function createApp(deps: Dependencies, options: {
+  corsAllowedOrigins?: readonly string[];
+  mountSupplierRoutes?: boolean;
+} = {}) {
+  const app = createHttpApp();
+  const origins = new Set(options.corsAllowedOrigins);
+  const corsRoutes = new Map([
+    ['/api/hotels', 'GET'],
+    ['/api/hotels/refresh', 'POST'],
+    ['/health', 'GET'],
+  ]);
+  app.use((req, res, next) => {
+    const method = corsRoutes.get(req.path);
+    if (!method) return next();
+    const origin = req.get('origin');
+    res.vary('Origin');
+    if (!origin || !origins.has(origin)) return next();
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Expose-Headers', 'X-Hotel-Failed-Suppliers');
+    if (req.method === 'OPTIONS' && req.get('Access-Control-Request-Method') === method) {
+      res.vary('Access-Control-Request-Method');
+      res.set('Access-Control-Allow-Methods', method);
+      res.sendStatus(204);
+      return;
+    }
+    next();
+  });
+
+  if (options.mountSupplierRoutes !== false) mountSupplierRoutes(app);
 
   app.get('/api/hotels', async (req, res) => {
     const city = cityParameter(req.query.city);
@@ -56,7 +121,7 @@ export function createApp(deps: Dependencies) {
 
   app.post('/api/hotels/refresh', async (req, res) => {
     const origin = req.get('origin');
-    if (origin !== undefined && origin !== req.protocol + '://' + req.get('host')) {
+    if (origin !== undefined && origin !== req.protocol + '://' + req.get('host') && !origins.has(origin)) {
       throw new ApiError(403, 'ORIGIN_NOT_ALLOWED', 'Refresh requires a same-origin browser request.');
     }
     const result = await deps.hotels(cityParameter(req.query.city), {}, true);
@@ -65,14 +130,8 @@ export function createApp(deps: Dependencies) {
   });
 
   app.get('/health', async (_req, res) => {
-    const checks = await Promise.all(Object.entries(deps.health).map(async ([name, check]) => {
-      try {
-        await check();
-        return [name, 'healthy'] as const;
-      } catch {
-        return [name, 'unhealthy'] as const;
-      }
-    }));
+    const checks = await Promise.all(Object.entries(deps.health).map(async ([name, check]) =>
+      [name, await serviceStatus(check)] as const));
     const services: Record<string, string> = { api: 'healthy', ...Object.fromEntries(checks) };
     const status = services.redis === 'unhealthy' || services.temporal === 'unhealthy'
       ? 'unhealthy'
@@ -80,16 +139,11 @@ export function createApp(deps: Dependencies) {
     res.status(status === 'healthy' ? 200 : 503).json({ status, services });
   });
 
-  app.use((_req, _res, next) => next(new ApiError(404, 'NOT_FOUND', 'Endpoint not found.')));
-  const errors: ErrorRequestHandler = (error: unknown, req, res, next) => {
-    if (res.headersSent) return next(error);
-    if (error instanceof ApiError) {
-      res.status(error.status).json({ error: { code: error.code, message: error.message } });
-      return;
-    }
-    log('error', 'http.unexpected', { method: req.method, error: errorKind(error) });
-    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred.' } });
-  };
-  app.use(errors);
-  return app;
+  app.get('/ready', async (_req, res) => {
+    const checks = await Promise.all([serviceStatus(deps.health.redis), serviceStatus(deps.health.temporal)]);
+    const ready = checks.every((status) => status === 'healthy');
+    res.status(ready ? 200 : 503).json({ status: ready ? 'ready' : 'unready' });
+  });
+
+  return finishHttpApp(app);
 }

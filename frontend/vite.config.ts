@@ -4,6 +4,12 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
+  if (mode === 'production' && env.VERCEL === '1') {
+    const url = URL.parse(env.VITE_API_BASE_URL || '');
+    if (!url || url.protocol !== 'https:' || url.href !== url.origin + '/') {
+      throw new Error('Set VITE_API_BASE_URL to the public HTTPS API origin in Vercel.');
+    }
+  }
   return {
     plugins: [react(), tailwindcss()],
     server: {

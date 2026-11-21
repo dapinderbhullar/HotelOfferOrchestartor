@@ -1,7 +1,7 @@
 import { once } from 'node:events';
 import { Client, Connection } from '@temporalio/client';
 import { createApp } from './app';
-import { config } from './config';
+import { config, temporalConnectionOptions } from './config';
 import { errorKind, log } from './log';
 import { connectWithRetry } from './runtime';
 import { createRedis, hotelCache } from './services/cache';
@@ -11,7 +11,7 @@ import { fetchListings } from './services/suppliers';
 async function main() {
   const redis = createRedis();
   const connection = await connectWithRetry('temporal', () => Connection.connect({
-    address: config.temporalAddress, connectTimeout: 3000,
+    ...temporalConnectionOptions(), connectTimeout: 3000,
   }));
   try {
     void redis.connect().catch((error: unknown) => log('error', 'redis.startup', { error: errorKind(error) }));
@@ -25,7 +25,7 @@ async function main() {
         supplierA: () => fetchListings(config.supplierAUrl, 'Supplier A', 'delhi'),
         supplierB: () => fetchListings(config.supplierBUrl, 'Supplier B', 'delhi'),
       },
-    });
+    }, { corsAllowedOrigins: config.corsAllowedOrigins, mountSupplierRoutes: config.mountSupplierRoutes });
     const server = app.listen(config.port, config.host);
     await once(server, 'listening');
     log('info', 'api.listening', { port: config.port });

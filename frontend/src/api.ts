@@ -1,7 +1,7 @@
 import { serviceNames, type Health, type Offer, type OfferResult, type Search, type Supplier } from './types';
 
 const base = (import.meta.env.VITE_API_BASE_URL || '/gateway').replace(/\/$/, '');
-export const temporalUrl = import.meta.env.VITE_TEMPORAL_UI_URL || 'http://127.0.0.1:8080';
+export const temporalUrl = import.meta.env.VITE_TEMPORAL_UI_URL || undefined;
 
 export class ApiError extends Error {
   constructor(message: string, public readonly code: string) {
@@ -16,7 +16,7 @@ const errorMessages: Record<string, string> = {
   INVALID_PRICE_RANGE: 'Minimum price cannot exceed maximum price.',
   CACHE_UNAVAILABLE: 'The offer cache is unavailable. Check Redis in System Health.',
   AGGREGATION_UNAVAILABLE: 'Offers could not be aggregated. Check Temporal and the suppliers in System Health.',
-  ORIGIN_NOT_ALLOWED: 'Refresh requires a same-origin connection. Use the dashboard proxy.',
+  ORIGIN_NOT_ALLOWED: 'This dashboard origin is not authorized to refresh offers. Check the API deployment configuration.',
 };
 
 const validSupplier = (value: unknown): value is Supplier => value === 'Supplier A' || value === 'Supplier B';
@@ -47,7 +47,7 @@ async function request(path: string, signal?: AbortSignal, method = 'GET', healt
     if (signal?.aborted) throw error;
     if (deadline.aborted) throw new ApiError('The request timed out. Try again.', 'TIMEOUT');
     if (error instanceof SyntaxError) throw invalidResponse();
-    throw new ApiError('Could not reach the backend. Check that the local stack is running.', 'NETWORK');
+    throw new ApiError('Could not reach the backend. Check the API URL and service status.', 'NETWORK');
   }
   if (!response.ok && !(health && response.status === 503 && payload !== undefined)) {
     const details = record(payload) && record(payload.error) ? payload.error : null;
