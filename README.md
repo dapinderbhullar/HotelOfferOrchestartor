@@ -2,7 +2,7 @@
 
 Hotel Offer Orchestrator is a hotel comparison dashboard and TypeScript API. Temporal fetches two supplier feeds concurrently, the worker keeps the cheapest offer per normalized hotel name, and Redis serves price-filtered results. The dashboard shows prices, supplier commissions, current-snapshot analytics, and service health.
 
-Delhi has seven mock listings per supplier and ten unique hotels. Mumbai has an intentionally empty catalog for testing. Start with [Docker Compose setup](#run-with-docker-compose), then use the [five-minute demo](DEMO_GUIDE.md) and [interview preparation notes](INTERVIEW_PREPARATION.md).
+Delhi has seven mock listings per supplier and ten unique hotels. Mumbai has an intentionally empty catalog for testing. Start with [Docker Compose setup](#run-with-docker-compose).
 
 ## Stack and architecture
 
